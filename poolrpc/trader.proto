@@ -725,6 +725,11 @@ message Bid {
     Signals if this bid is interested in an announced or unannounced channel.
     */
     bool unannounced_channel = 7;
+
+    /*
+    Signals if this bid is interested in zeroconf channels or not.
+    */
+    bool zero_conf_channel = 8;
 }
 
 message Ask {
@@ -749,6 +754,12 @@ message Ask {
     The constraints for selling the liquidity based on channel discoverability.
     */
     ChannelAnnouncementConstraints announcement_constraints = 4;
+
+    /*
+    The constraints for selling the liquidity based on the number of
+    blocks before considering the channel confirmed.
+    */
+    ChannelConfirmationConstraints confirmation_constraints = 5;
 }
 
 message QuoteOrderRequest {

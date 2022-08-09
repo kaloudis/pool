@@ -2404,6 +2404,9 @@ type Bid struct {
 	//
 	//Signals if this bid is interested in an announced or unannounced channel.
 	UnannouncedChannel bool `protobuf:"varint,7,opt,name=unannounced_channel,json=unannouncedChannel,proto3" json:"unannounced_channel,omitempty"`
+	//
+	//Signals if this bid is interested in zeroconf channels or not.
+	ZeroConfChannel bool `protobuf:"varint,8,opt,name=zero_conf_channel,json=zeroConfChannel,proto3" json:"zero_conf_channel,omitempty"`
 }
 
 func (x *Bid) Reset() {
@@ -2487,6 +2490,13 @@ func (x *Bid) GetUnannouncedChannel() bool {
 	return false
 }
 
+func (x *Bid) GetZeroConfChannel() bool {
+	if x != nil {
+		return x.ZeroConfChannel
+	}
+	return false
+}
+
 type Ask struct {
 	state         protoimpl.MessageState
 	sizeCache     protoimpl.SizeCache
@@ -2506,6 +2516,10 @@ type Ask struct {
 	//
 	//The constraints for selling the liquidity based on channel discoverability.
 	AnnouncementConstraints auctioneerrpc.ChannelAnnouncementConstraints `protobuf:"varint,4,opt,name=announcement_constraints,json=announcementConstraints,proto3,enum=poolrpc.ChannelAnnouncementConstraints" json:"announcement_constraints,omitempty"`
+	//
+	//The constraints for selling the liquidity based on the number of
+	//blocks before considering the channel confirmed.
+	ConfirmationConstraints auctioneerrpc.ChannelConfirmationConstraints `protobuf:"varint,5,opt,name=confirmation_constraints,json=confirmationConstraints,proto3,enum=poolrpc.ChannelConfirmationConstraints" json:"confirmation_constraints,omitempty"`
 }
 
 func (x *Ask) Reset() {
@@ -2566,6 +2580,13 @@ func (x *Ask) GetAnnouncementConstraints() auctioneerrpc.ChannelAnnouncementCons
 		return x.AnnouncementConstraints
 	}
 	return auctioneerrpc.ChannelAnnouncementConstraints(0)
+}
+
+func (x *Ask) GetConfirmationConstraints() auctioneerrpc.ChannelConfirmationConstraints {
+	if x != nil {
+		return x.ConfirmationConstraints
+	}
+	return auctioneerrpc.ChannelConfirmationConstraints(0)
 }
 
 type QuoteOrderRequest struct {
@@ -5340,7 +5361,7 @@ var file_trader_proto_rawDesc = []byte{
 	0x12, 0x2f, 0x0a, 0x14, 0x6e, 0x6f, 0x74, 0x5f, 0x61, 0x6c, 0x6c, 0x6f, 0x77, 0x65, 0x64, 0x5f,
 	0x6e, 0x6f, 0x64, 0x65, 0x5f, 0x69, 0x64, 0x73, 0x18, 0x0f, 0x20, 0x03, 0x28, 0x0c, 0x52, 0x11,
 	0x6e, 0x6f, 0x74, 0x41, 0x6c, 0x6c, 0x6f, 0x77, 0x65, 0x64, 0x4e, 0x6f, 0x64, 0x65, 0x49, 0x64,
-	0x73, 0x22, 0xb8, 0x02, 0x0a, 0x03, 0x42, 0x69, 0x64, 0x12, 0x28, 0x0a, 0x07, 0x64, 0x65, 0x74,
+	0x73, 0x22, 0xe4, 0x02, 0x0a, 0x03, 0x42, 0x69, 0x64, 0x12, 0x28, 0x0a, 0x07, 0x64, 0x65, 0x74,
 	0x61, 0x69, 0x6c, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x70, 0x6f, 0x6f,
 	0x6c, 0x72, 0x70, 0x63, 0x2e, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x52, 0x07, 0x64, 0x65, 0x74, 0x61,
 	0x69, 0x6c, 0x73, 0x12, 0x32, 0x0a, 0x15, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x5f, 0x64, 0x75, 0x72,
@@ -5359,21 +5380,30 @@ var file_trader_proto_rawDesc = []byte{
 	0x64, 0x65, 0x63, 0x61, 0x72, 0x54, 0x69, 0x63, 0x6b, 0x65, 0x74, 0x12, 0x2f, 0x0a, 0x13, 0x75,
 	0x6e, 0x61, 0x6e, 0x6e, 0x6f, 0x75, 0x6e, 0x63, 0x65, 0x64, 0x5f, 0x63, 0x68, 0x61, 0x6e, 0x6e,
 	0x65, 0x6c, 0x18, 0x07, 0x20, 0x01, 0x28, 0x08, 0x52, 0x12, 0x75, 0x6e, 0x61, 0x6e, 0x6e, 0x6f,
-	0x75, 0x6e, 0x63, 0x65, 0x64, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x22, 0xe1, 0x01, 0x0a,
-	0x03, 0x41, 0x73, 0x6b, 0x12, 0x28, 0x0a, 0x07, 0x64, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x18,
-	0x01, 0x20, 0x01, 0x28, 0x0b, 0x32, 0x0e, 0x2e, 0x70, 0x6f, 0x6f, 0x6c, 0x72, 0x70, 0x63, 0x2e,
-	0x4f, 0x72, 0x64, 0x65, 0x72, 0x52, 0x07, 0x64, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x12, 0x32,
-	0x0a, 0x15, 0x6c, 0x65, 0x61, 0x73, 0x65, 0x5f, 0x64, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e,
-	0x5f, 0x62, 0x6c, 0x6f, 0x63, 0x6b, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x13, 0x6c,
-	0x65, 0x61, 0x73, 0x65, 0x44, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x42, 0x6c, 0x6f, 0x63,
-	0x6b, 0x73, 0x12, 0x18, 0x0a, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x03, 0x20,
-	0x01, 0x28, 0x0d, 0x52, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x62, 0x0a, 0x18,
-	0x61, 0x6e, 0x6e, 0x6f, 0x75, 0x6e, 0x63, 0x65, 0x6d, 0x65, 0x6e, 0x74, 0x5f, 0x63, 0x6f, 0x6e,
-	0x73, 0x74, 0x72, 0x61, 0x69, 0x6e, 0x74, 0x73, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x27,
+	0x75, 0x6e, 0x63, 0x65, 0x64, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x12, 0x2a, 0x0a, 0x11,
+	0x7a, 0x65, 0x72, 0x6f, 0x5f, 0x63, 0x6f, 0x6e, 0x66, 0x5f, 0x63, 0x68, 0x61, 0x6e, 0x6e, 0x65,
+	0x6c, 0x18, 0x08, 0x20, 0x01, 0x28, 0x08, 0x52, 0x0f, 0x7a, 0x65, 0x72, 0x6f, 0x43, 0x6f, 0x6e,
+	0x66, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x22, 0xc5, 0x02, 0x0a, 0x03, 0x41, 0x73, 0x6b,
+	0x12, 0x28, 0x0a, 0x07, 0x64, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x18, 0x01, 0x20, 0x01, 0x28,
+	0x0b, 0x32, 0x0e, 0x2e, 0x70, 0x6f, 0x6f, 0x6c, 0x72, 0x70, 0x63, 0x2e, 0x4f, 0x72, 0x64, 0x65,
+	0x72, 0x52, 0x07, 0x64, 0x65, 0x74, 0x61, 0x69, 0x6c, 0x73, 0x12, 0x32, 0x0a, 0x15, 0x6c, 0x65,
+	0x61, 0x73, 0x65, 0x5f, 0x64, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x62, 0x6c, 0x6f,
+	0x63, 0x6b, 0x73, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x13, 0x6c, 0x65, 0x61, 0x73, 0x65,
+	0x44, 0x75, 0x72, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x42, 0x6c, 0x6f, 0x63, 0x6b, 0x73, 0x12, 0x18,
+	0x0a, 0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x18, 0x03, 0x20, 0x01, 0x28, 0x0d, 0x52,
+	0x07, 0x76, 0x65, 0x72, 0x73, 0x69, 0x6f, 0x6e, 0x12, 0x62, 0x0a, 0x18, 0x61, 0x6e, 0x6e, 0x6f,
+	0x75, 0x6e, 0x63, 0x65, 0x6d, 0x65, 0x6e, 0x74, 0x5f, 0x63, 0x6f, 0x6e, 0x73, 0x74, 0x72, 0x61,
+	0x69, 0x6e, 0x74, 0x73, 0x18, 0x04, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x27, 0x2e, 0x70, 0x6f, 0x6f,
+	0x6c, 0x72, 0x70, 0x63, 0x2e, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c, 0x41, 0x6e, 0x6e, 0x6f,
+	0x75, 0x6e, 0x63, 0x65, 0x6d, 0x65, 0x6e, 0x74, 0x43, 0x6f, 0x6e, 0x73, 0x74, 0x72, 0x61, 0x69,
+	0x6e, 0x74, 0x73, 0x52, 0x17, 0x61, 0x6e, 0x6e, 0x6f, 0x75, 0x6e, 0x63, 0x65, 0x6d, 0x65, 0x6e,
+	0x74, 0x43, 0x6f, 0x6e, 0x73, 0x74, 0x72, 0x61, 0x69, 0x6e, 0x74, 0x73, 0x12, 0x62, 0x0a, 0x18,
+	0x63, 0x6f, 0x6e, 0x66, 0x69, 0x72, 0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x5f, 0x63, 0x6f, 0x6e,
+	0x73, 0x74, 0x72, 0x61, 0x69, 0x6e, 0x74, 0x73, 0x18, 0x05, 0x20, 0x01, 0x28, 0x0e, 0x32, 0x27,
 	0x2e, 0x70, 0x6f, 0x6f, 0x6c, 0x72, 0x70, 0x63, 0x2e, 0x43, 0x68, 0x61, 0x6e, 0x6e, 0x65, 0x6c,
-	0x41, 0x6e, 0x6e, 0x6f, 0x75, 0x6e, 0x63, 0x65, 0x6d, 0x65, 0x6e, 0x74, 0x43, 0x6f, 0x6e, 0x73,
-	0x74, 0x72, 0x61, 0x69, 0x6e, 0x74, 0x73, 0x52, 0x17, 0x61, 0x6e, 0x6e, 0x6f, 0x75, 0x6e, 0x63,
-	0x65, 0x6d, 0x65, 0x6e, 0x74, 0x43, 0x6f, 0x6e, 0x73, 0x74, 0x72, 0x61, 0x69, 0x6e, 0x74, 0x73,
+	0x43, 0x6f, 0x6e, 0x66, 0x69, 0x72, 0x6d, 0x61, 0x74, 0x69, 0x6f, 0x6e, 0x43, 0x6f, 0x6e, 0x73,
+	0x74, 0x72, 0x61, 0x69, 0x6e, 0x74, 0x73, 0x52, 0x17, 0x63, 0x6f, 0x6e, 0x66, 0x69, 0x72, 0x6d,
+	0x61, 0x74, 0x69, 0x6f, 0x6e, 0x43, 0x6f, 0x6e, 0x73, 0x74, 0x72, 0x61, 0x69, 0x6e, 0x74, 0x73,
 	0x22, 0xe0, 0x01, 0x0a, 0x11, 0x51, 0x75, 0x6f, 0x74, 0x65, 0x4f, 0x72, 0x64, 0x65, 0x72, 0x52,
 	0x65, 0x71, 0x75, 0x65, 0x73, 0x74, 0x12, 0x10, 0x0a, 0x03, 0x61, 0x6d, 0x74, 0x18, 0x01, 0x20,
 	0x01, 0x28, 0x04, 0x52, 0x03, 0x61, 0x6d, 0x74, 0x12, 0x1d, 0x0a, 0x0a, 0x72, 0x61, 0x74, 0x65,
@@ -6009,14 +6039,15 @@ var file_trader_proto_goTypes = []interface{}{
 	(auctioneerrpc.OrderChannelType)(0),               // 73: poolrpc.OrderChannelType
 	(auctioneerrpc.NodeTier)(0),                       // 74: poolrpc.NodeTier
 	(auctioneerrpc.ChannelAnnouncementConstraints)(0), // 75: poolrpc.ChannelAnnouncementConstraints
-	(*auctioneerrpc.ExecutionFee)(nil),                // 76: poolrpc.ExecutionFee
-	(*auctioneerrpc.NodeRating)(nil),                  // 77: poolrpc.NodeRating
-	(auctioneerrpc.DurationBucketState)(0),            // 78: poolrpc.DurationBucketState
-	(*auctioneerrpc.MarketInfo)(nil),                  // 79: poolrpc.MarketInfo
-	(*auctioneerrpc.BatchSnapshotRequest)(nil),        // 80: poolrpc.BatchSnapshotRequest
-	(*auctioneerrpc.BatchSnapshotsRequest)(nil),       // 81: poolrpc.BatchSnapshotsRequest
-	(*auctioneerrpc.BatchSnapshotResponse)(nil),       // 82: poolrpc.BatchSnapshotResponse
-	(*auctioneerrpc.BatchSnapshotsResponse)(nil),      // 83: poolrpc.BatchSnapshotsResponse
+	(auctioneerrpc.ChannelConfirmationConstraints)(0), // 76: poolrpc.ChannelConfirmationConstraints
+	(*auctioneerrpc.ExecutionFee)(nil),                // 77: poolrpc.ExecutionFee
+	(*auctioneerrpc.NodeRating)(nil),                  // 78: poolrpc.NodeRating
+	(auctioneerrpc.DurationBucketState)(0),            // 79: poolrpc.DurationBucketState
+	(*auctioneerrpc.MarketInfo)(nil),                  // 80: poolrpc.MarketInfo
+	(*auctioneerrpc.BatchSnapshotRequest)(nil),        // 81: poolrpc.BatchSnapshotRequest
+	(*auctioneerrpc.BatchSnapshotsRequest)(nil),       // 82: poolrpc.BatchSnapshotsRequest
+	(*auctioneerrpc.BatchSnapshotResponse)(nil),       // 83: poolrpc.BatchSnapshotResponse
+	(*auctioneerrpc.BatchSnapshotsResponse)(nil),      // 84: poolrpc.BatchSnapshotsResponse
 }
 var file_trader_proto_depIdxs = []int32{
 	0,  // 0: poolrpc.InitAccountRequest.version:type_name -> poolrpc.AccountVersion
@@ -6046,89 +6077,90 @@ var file_trader_proto_depIdxs = []int32{
 	74, // 24: poolrpc.Bid.min_node_tier:type_name -> poolrpc.NodeTier
 	29, // 25: poolrpc.Ask.details:type_name -> poolrpc.Order
 	75, // 26: poolrpc.Ask.announcement_constraints:type_name -> poolrpc.ChannelAnnouncementConstraints
-	35, // 27: poolrpc.OrderEvent.state_change:type_name -> poolrpc.UpdatedEvent
-	36, // 28: poolrpc.OrderEvent.matched:type_name -> poolrpc.MatchEvent
-	72, // 29: poolrpc.UpdatedEvent.previous_state:type_name -> poolrpc.OrderState
-	72, // 30: poolrpc.UpdatedEvent.new_state:type_name -> poolrpc.OrderState
-	2,  // 31: poolrpc.MatchEvent.match_state:type_name -> poolrpc.MatchState
-	3,  // 32: poolrpc.MatchEvent.reject_reason:type_name -> poolrpc.MatchRejectReason
-	76, // 33: poolrpc.AuctionFeeResponse.execution_fee:type_name -> poolrpc.ExecutionFee
-	70, // 34: poolrpc.Lease.channel_point:type_name -> poolrpc.OutPoint
-	74, // 35: poolrpc.Lease.channel_node_tier:type_name -> poolrpc.NodeTier
-	41, // 36: poolrpc.LeasesResponse.leases:type_name -> poolrpc.Lease
-	46, // 37: poolrpc.TokensResponse.tokens:type_name -> poolrpc.LsatToken
-	67, // 38: poolrpc.LeaseDurationResponse.lease_durations:type_name -> poolrpc.LeaseDurationResponse.LeaseDurationsEntry
-	68, // 39: poolrpc.LeaseDurationResponse.lease_duration_buckets:type_name -> poolrpc.LeaseDurationResponse.LeaseDurationBucketsEntry
-	77, // 40: poolrpc.NodeRatingResponse.node_ratings:type_name -> poolrpc.NodeRating
-	77, // 41: poolrpc.GetInfoResponse.node_rating:type_name -> poolrpc.NodeRating
-	69, // 42: poolrpc.GetInfoResponse.market_info:type_name -> poolrpc.GetInfoResponse.MarketInfoEntry
-	30, // 43: poolrpc.OfferSidecarRequest.bid:type_name -> poolrpc.Bid
-	59, // 44: poolrpc.ListSidecarsResponse.tickets:type_name -> poolrpc.DecodedSidecarTicket
-	78, // 45: poolrpc.LeaseDurationResponse.LeaseDurationBucketsEntry.value:type_name -> poolrpc.DurationBucketState
-	79, // 46: poolrpc.GetInfoResponse.MarketInfoEntry.value:type_name -> poolrpc.MarketInfo
-	53, // 47: poolrpc.Trader.GetInfo:input_type -> poolrpc.GetInfoRequest
-	55, // 48: poolrpc.Trader.StopDaemon:input_type -> poolrpc.StopDaemonRequest
-	5,  // 49: poolrpc.Trader.QuoteAccount:input_type -> poolrpc.QuoteAccountRequest
-	4,  // 50: poolrpc.Trader.InitAccount:input_type -> poolrpc.InitAccountRequest
-	7,  // 51: poolrpc.Trader.ListAccounts:input_type -> poolrpc.ListAccountsRequest
-	12, // 52: poolrpc.Trader.CloseAccount:input_type -> poolrpc.CloseAccountRequest
-	14, // 53: poolrpc.Trader.WithdrawAccount:input_type -> poolrpc.WithdrawAccountRequest
-	16, // 54: poolrpc.Trader.DepositAccount:input_type -> poolrpc.DepositAccountRequest
-	18, // 55: poolrpc.Trader.RenewAccount:input_type -> poolrpc.RenewAccountRequest
-	20, // 56: poolrpc.Trader.BumpAccountFee:input_type -> poolrpc.BumpAccountFeeRequest
-	37, // 57: poolrpc.Trader.RecoverAccounts:input_type -> poolrpc.RecoverAccountsRequest
-	23, // 58: poolrpc.Trader.SubmitOrder:input_type -> poolrpc.SubmitOrderRequest
-	25, // 59: poolrpc.Trader.ListOrders:input_type -> poolrpc.ListOrdersRequest
-	27, // 60: poolrpc.Trader.CancelOrder:input_type -> poolrpc.CancelOrderRequest
-	32, // 61: poolrpc.Trader.QuoteOrder:input_type -> poolrpc.QuoteOrderRequest
-	39, // 62: poolrpc.Trader.AuctionFee:input_type -> poolrpc.AuctionFeeRequest
-	47, // 63: poolrpc.Trader.LeaseDurations:input_type -> poolrpc.LeaseDurationRequest
-	49, // 64: poolrpc.Trader.NextBatchInfo:input_type -> poolrpc.NextBatchInfoRequest
-	80, // 65: poolrpc.Trader.BatchSnapshot:input_type -> poolrpc.BatchSnapshotRequest
-	44, // 66: poolrpc.Trader.GetLsatTokens:input_type -> poolrpc.TokensRequest
-	42, // 67: poolrpc.Trader.Leases:input_type -> poolrpc.LeasesRequest
-	51, // 68: poolrpc.Trader.NodeRatings:input_type -> poolrpc.NodeRatingRequest
-	81, // 69: poolrpc.Trader.BatchSnapshots:input_type -> poolrpc.BatchSnapshotsRequest
-	57, // 70: poolrpc.Trader.OfferSidecar:input_type -> poolrpc.OfferSidecarRequest
-	60, // 71: poolrpc.Trader.RegisterSidecar:input_type -> poolrpc.RegisterSidecarRequest
-	61, // 72: poolrpc.Trader.ExpectSidecarChannel:input_type -> poolrpc.ExpectSidecarChannelRequest
-	58, // 73: poolrpc.Trader.DecodeSidecarTicket:input_type -> poolrpc.SidecarTicket
-	63, // 74: poolrpc.Trader.ListSidecars:input_type -> poolrpc.ListSidecarsRequest
-	65, // 75: poolrpc.Trader.CancelSidecar:input_type -> poolrpc.CancelSidecarRequest
-	54, // 76: poolrpc.Trader.GetInfo:output_type -> poolrpc.GetInfoResponse
-	56, // 77: poolrpc.Trader.StopDaemon:output_type -> poolrpc.StopDaemonResponse
-	6,  // 78: poolrpc.Trader.QuoteAccount:output_type -> poolrpc.QuoteAccountResponse
-	22, // 79: poolrpc.Trader.InitAccount:output_type -> poolrpc.Account
-	8,  // 80: poolrpc.Trader.ListAccounts:output_type -> poolrpc.ListAccountsResponse
-	13, // 81: poolrpc.Trader.CloseAccount:output_type -> poolrpc.CloseAccountResponse
-	15, // 82: poolrpc.Trader.WithdrawAccount:output_type -> poolrpc.WithdrawAccountResponse
-	17, // 83: poolrpc.Trader.DepositAccount:output_type -> poolrpc.DepositAccountResponse
-	19, // 84: poolrpc.Trader.RenewAccount:output_type -> poolrpc.RenewAccountResponse
-	21, // 85: poolrpc.Trader.BumpAccountFee:output_type -> poolrpc.BumpAccountFeeResponse
-	38, // 86: poolrpc.Trader.RecoverAccounts:output_type -> poolrpc.RecoverAccountsResponse
-	24, // 87: poolrpc.Trader.SubmitOrder:output_type -> poolrpc.SubmitOrderResponse
-	26, // 88: poolrpc.Trader.ListOrders:output_type -> poolrpc.ListOrdersResponse
-	28, // 89: poolrpc.Trader.CancelOrder:output_type -> poolrpc.CancelOrderResponse
-	33, // 90: poolrpc.Trader.QuoteOrder:output_type -> poolrpc.QuoteOrderResponse
-	40, // 91: poolrpc.Trader.AuctionFee:output_type -> poolrpc.AuctionFeeResponse
-	48, // 92: poolrpc.Trader.LeaseDurations:output_type -> poolrpc.LeaseDurationResponse
-	50, // 93: poolrpc.Trader.NextBatchInfo:output_type -> poolrpc.NextBatchInfoResponse
-	82, // 94: poolrpc.Trader.BatchSnapshot:output_type -> poolrpc.BatchSnapshotResponse
-	45, // 95: poolrpc.Trader.GetLsatTokens:output_type -> poolrpc.TokensResponse
-	43, // 96: poolrpc.Trader.Leases:output_type -> poolrpc.LeasesResponse
-	52, // 97: poolrpc.Trader.NodeRatings:output_type -> poolrpc.NodeRatingResponse
-	83, // 98: poolrpc.Trader.BatchSnapshots:output_type -> poolrpc.BatchSnapshotsResponse
-	58, // 99: poolrpc.Trader.OfferSidecar:output_type -> poolrpc.SidecarTicket
-	58, // 100: poolrpc.Trader.RegisterSidecar:output_type -> poolrpc.SidecarTicket
-	62, // 101: poolrpc.Trader.ExpectSidecarChannel:output_type -> poolrpc.ExpectSidecarChannelResponse
-	59, // 102: poolrpc.Trader.DecodeSidecarTicket:output_type -> poolrpc.DecodedSidecarTicket
-	64, // 103: poolrpc.Trader.ListSidecars:output_type -> poolrpc.ListSidecarsResponse
-	66, // 104: poolrpc.Trader.CancelSidecar:output_type -> poolrpc.CancelSidecarResponse
-	76, // [76:105] is the sub-list for method output_type
-	47, // [47:76] is the sub-list for method input_type
-	47, // [47:47] is the sub-list for extension type_name
-	47, // [47:47] is the sub-list for extension extendee
-	0,  // [0:47] is the sub-list for field type_name
+	76, // 27: poolrpc.Ask.confirmation_constraints:type_name -> poolrpc.ChannelConfirmationConstraints
+	35, // 28: poolrpc.OrderEvent.state_change:type_name -> poolrpc.UpdatedEvent
+	36, // 29: poolrpc.OrderEvent.matched:type_name -> poolrpc.MatchEvent
+	72, // 30: poolrpc.UpdatedEvent.previous_state:type_name -> poolrpc.OrderState
+	72, // 31: poolrpc.UpdatedEvent.new_state:type_name -> poolrpc.OrderState
+	2,  // 32: poolrpc.MatchEvent.match_state:type_name -> poolrpc.MatchState
+	3,  // 33: poolrpc.MatchEvent.reject_reason:type_name -> poolrpc.MatchRejectReason
+	77, // 34: poolrpc.AuctionFeeResponse.execution_fee:type_name -> poolrpc.ExecutionFee
+	70, // 35: poolrpc.Lease.channel_point:type_name -> poolrpc.OutPoint
+	74, // 36: poolrpc.Lease.channel_node_tier:type_name -> poolrpc.NodeTier
+	41, // 37: poolrpc.LeasesResponse.leases:type_name -> poolrpc.Lease
+	46, // 38: poolrpc.TokensResponse.tokens:type_name -> poolrpc.LsatToken
+	67, // 39: poolrpc.LeaseDurationResponse.lease_durations:type_name -> poolrpc.LeaseDurationResponse.LeaseDurationsEntry
+	68, // 40: poolrpc.LeaseDurationResponse.lease_duration_buckets:type_name -> poolrpc.LeaseDurationResponse.LeaseDurationBucketsEntry
+	78, // 41: poolrpc.NodeRatingResponse.node_ratings:type_name -> poolrpc.NodeRating
+	78, // 42: poolrpc.GetInfoResponse.node_rating:type_name -> poolrpc.NodeRating
+	69, // 43: poolrpc.GetInfoResponse.market_info:type_name -> poolrpc.GetInfoResponse.MarketInfoEntry
+	30, // 44: poolrpc.OfferSidecarRequest.bid:type_name -> poolrpc.Bid
+	59, // 45: poolrpc.ListSidecarsResponse.tickets:type_name -> poolrpc.DecodedSidecarTicket
+	79, // 46: poolrpc.LeaseDurationResponse.LeaseDurationBucketsEntry.value:type_name -> poolrpc.DurationBucketState
+	80, // 47: poolrpc.GetInfoResponse.MarketInfoEntry.value:type_name -> poolrpc.MarketInfo
+	53, // 48: poolrpc.Trader.GetInfo:input_type -> poolrpc.GetInfoRequest
+	55, // 49: poolrpc.Trader.StopDaemon:input_type -> poolrpc.StopDaemonRequest
+	5,  // 50: poolrpc.Trader.QuoteAccount:input_type -> poolrpc.QuoteAccountRequest
+	4,  // 51: poolrpc.Trader.InitAccount:input_type -> poolrpc.InitAccountRequest
+	7,  // 52: poolrpc.Trader.ListAccounts:input_type -> poolrpc.ListAccountsRequest
+	12, // 53: poolrpc.Trader.CloseAccount:input_type -> poolrpc.CloseAccountRequest
+	14, // 54: poolrpc.Trader.WithdrawAccount:input_type -> poolrpc.WithdrawAccountRequest
+	16, // 55: poolrpc.Trader.DepositAccount:input_type -> poolrpc.DepositAccountRequest
+	18, // 56: poolrpc.Trader.RenewAccount:input_type -> poolrpc.RenewAccountRequest
+	20, // 57: poolrpc.Trader.BumpAccountFee:input_type -> poolrpc.BumpAccountFeeRequest
+	37, // 58: poolrpc.Trader.RecoverAccounts:input_type -> poolrpc.RecoverAccountsRequest
+	23, // 59: poolrpc.Trader.SubmitOrder:input_type -> poolrpc.SubmitOrderRequest
+	25, // 60: poolrpc.Trader.ListOrders:input_type -> poolrpc.ListOrdersRequest
+	27, // 61: poolrpc.Trader.CancelOrder:input_type -> poolrpc.CancelOrderRequest
+	32, // 62: poolrpc.Trader.QuoteOrder:input_type -> poolrpc.QuoteOrderRequest
+	39, // 63: poolrpc.Trader.AuctionFee:input_type -> poolrpc.AuctionFeeRequest
+	47, // 64: poolrpc.Trader.LeaseDurations:input_type -> poolrpc.LeaseDurationRequest
+	49, // 65: poolrpc.Trader.NextBatchInfo:input_type -> poolrpc.NextBatchInfoRequest
+	81, // 66: poolrpc.Trader.BatchSnapshot:input_type -> poolrpc.BatchSnapshotRequest
+	44, // 67: poolrpc.Trader.GetLsatTokens:input_type -> poolrpc.TokensRequest
+	42, // 68: poolrpc.Trader.Leases:input_type -> poolrpc.LeasesRequest
+	51, // 69: poolrpc.Trader.NodeRatings:input_type -> poolrpc.NodeRatingRequest
+	82, // 70: poolrpc.Trader.BatchSnapshots:input_type -> poolrpc.BatchSnapshotsRequest
+	57, // 71: poolrpc.Trader.OfferSidecar:input_type -> poolrpc.OfferSidecarRequest
+	60, // 72: poolrpc.Trader.RegisterSidecar:input_type -> poolrpc.RegisterSidecarRequest
+	61, // 73: poolrpc.Trader.ExpectSidecarChannel:input_type -> poolrpc.ExpectSidecarChannelRequest
+	58, // 74: poolrpc.Trader.DecodeSidecarTicket:input_type -> poolrpc.SidecarTicket
+	63, // 75: poolrpc.Trader.ListSidecars:input_type -> poolrpc.ListSidecarsRequest
+	65, // 76: poolrpc.Trader.CancelSidecar:input_type -> poolrpc.CancelSidecarRequest
+	54, // 77: poolrpc.Trader.GetInfo:output_type -> poolrpc.GetInfoResponse
+	56, // 78: poolrpc.Trader.StopDaemon:output_type -> poolrpc.StopDaemonResponse
+	6,  // 79: poolrpc.Trader.QuoteAccount:output_type -> poolrpc.QuoteAccountResponse
+	22, // 80: poolrpc.Trader.InitAccount:output_type -> poolrpc.Account
+	8,  // 81: poolrpc.Trader.ListAccounts:output_type -> poolrpc.ListAccountsResponse
+	13, // 82: poolrpc.Trader.CloseAccount:output_type -> poolrpc.CloseAccountResponse
+	15, // 83: poolrpc.Trader.WithdrawAccount:output_type -> poolrpc.WithdrawAccountResponse
+	17, // 84: poolrpc.Trader.DepositAccount:output_type -> poolrpc.DepositAccountResponse
+	19, // 85: poolrpc.Trader.RenewAccount:output_type -> poolrpc.RenewAccountResponse
+	21, // 86: poolrpc.Trader.BumpAccountFee:output_type -> poolrpc.BumpAccountFeeResponse
+	38, // 87: poolrpc.Trader.RecoverAccounts:output_type -> poolrpc.RecoverAccountsResponse
+	24, // 88: poolrpc.Trader.SubmitOrder:output_type -> poolrpc.SubmitOrderResponse
+	26, // 89: poolrpc.Trader.ListOrders:output_type -> poolrpc.ListOrdersResponse
+	28, // 90: poolrpc.Trader.CancelOrder:output_type -> poolrpc.CancelOrderResponse
+	33, // 91: poolrpc.Trader.QuoteOrder:output_type -> poolrpc.QuoteOrderResponse
+	40, // 92: poolrpc.Trader.AuctionFee:output_type -> poolrpc.AuctionFeeResponse
+	48, // 93: poolrpc.Trader.LeaseDurations:output_type -> poolrpc.LeaseDurationResponse
+	50, // 94: poolrpc.Trader.NextBatchInfo:output_type -> poolrpc.NextBatchInfoResponse
+	83, // 95: poolrpc.Trader.BatchSnapshot:output_type -> poolrpc.BatchSnapshotResponse
+	45, // 96: poolrpc.Trader.GetLsatTokens:output_type -> poolrpc.TokensResponse
+	43, // 97: poolrpc.Trader.Leases:output_type -> poolrpc.LeasesResponse
+	52, // 98: poolrpc.Trader.NodeRatings:output_type -> poolrpc.NodeRatingResponse
+	84, // 99: poolrpc.Trader.BatchSnapshots:output_type -> poolrpc.BatchSnapshotsResponse
+	58, // 100: poolrpc.Trader.OfferSidecar:output_type -> poolrpc.SidecarTicket
+	58, // 101: poolrpc.Trader.RegisterSidecar:output_type -> poolrpc.SidecarTicket
+	62, // 102: poolrpc.Trader.ExpectSidecarChannel:output_type -> poolrpc.ExpectSidecarChannelResponse
+	59, // 103: poolrpc.Trader.DecodeSidecarTicket:output_type -> poolrpc.DecodedSidecarTicket
+	64, // 104: poolrpc.Trader.ListSidecars:output_type -> poolrpc.ListSidecarsResponse
+	66, // 105: poolrpc.Trader.CancelSidecar:output_type -> poolrpc.CancelSidecarResponse
+	77, // [77:106] is the sub-list for method output_type
+	48, // [48:77] is the sub-list for method input_type
+	48, // [48:48] is the sub-list for extension type_name
+	48, // [48:48] is the sub-list for extension extendee
+	0,  // [0:48] is the sub-list for field type_name
 }
 
 func init() { file_trader_proto_init() }

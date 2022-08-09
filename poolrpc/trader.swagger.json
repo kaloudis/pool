@@ -1063,6 +1063,10 @@
         "announcement_constraints": {
           "$ref": "#/definitions/poolrpcChannelAnnouncementConstraints",
           "description": "The constraints for selling the liquidity based on channel discoverability."
+        },
+        "confirmation_constraints": {
+          "$ref": "#/definitions/poolrpcChannelConfirmationConstraints",
+          "description": "The constraints for selling the liquidity based on the number of\nblocks before considering the channel confirmed."
         }
       }
     },
@@ -1202,6 +1206,10 @@
         "unannounced_channel": {
           "type": "boolean",
           "description": "Signals if this bid is interested in an announced or unannounced channel."
+        },
+        "zero_conf_channel": {
+          "type": "boolean",
+          "description": "Signals if this bid is interested in zeroconf channels or not."
         }
       }
     },
@@ -1262,6 +1270,16 @@
       ],
       "default": "ANNOUNCEMENT_NO_PREFERENCE",
       "description": "Channel announcement constraints for matched channels."
+    },
+    "poolrpcChannelConfirmationConstraints": {
+      "type": "string",
+      "enum": [
+        "CONFIRMATION_NO_PREFERENCE",
+        "ONLY_CONFIRMED",
+        "ONLY_ZEROCONF"
+      ],
+      "default": "CONFIRMATION_NO_PREFERENCE",
+      "description": "Channel confirmation constraints for matched channels."
     },
     "poolrpcCloseAccountResponse": {
       "type": "object",
