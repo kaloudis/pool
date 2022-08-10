@@ -92,9 +92,13 @@ func (s *accountStore) PendingBatch() error {
 // newRPCServer creates a new client-side RPC server that uses the given
 // connection to the trader's lnd node and the auction server. A client side
 // database is created in `serverDir` if it does not yet exist.
-func newRPCServer(server *Server) *rpcServer {
+func newRPCServer(server *Server) (*rpcServer, error) {
 	accountStore := &accountStore{server.db}
 	lndServices := &server.lndServices.LndServices
+	batchVersion, err := server.determineBatchVersion()
+	if err != nil {
+		return nil, err
+	}
 	return &rpcServer{
 		server:      server,
 		lndServices: lndServices,
@@ -118,14 +122,14 @@ func newRPCServer(server *Server) *rpcServer {
 			Lightning:    lndServices.Client,
 			Wallet:       lndServices.WalletKit,
 			Signer:       lndServices.Signer,
-			BatchVersion: server.determineBatchVersion(),
+			BatchVersion: batchVersion,
 		}),
 		marshaler: NewMarshaler(&marshalerConfig{
 			GetOrders: server.db.GetOrders,
 			Terms:     server.AuctioneerClient.Terms,
 		}),
 		quit: make(chan struct{}),
-	}
+	}, nil
 }
 
 // Start starts the rpcServer, making it ready to accept incoming requests.

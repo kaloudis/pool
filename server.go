@@ -28,6 +28,7 @@ import (
 	"github.com/lightninglabs/pool/terms"
 	"github.com/lightningnetwork/lnd/lnrpc"
 	"github.com/lightningnetwork/lnd/lnrpc/verrpc"
+	"github.com/lightningnetwork/lnd/lnwire"
 	"github.com/lightningnetwork/lnd/macaroons"
 	"github.com/lightningnetwork/lnd/signal"
 	"google.golang.org/grpc"
@@ -192,7 +193,10 @@ func (s *Server) Start() error {
 	shutdownFuncs["auctioneer"] = s.AuctioneerClient.Stop
 
 	// Instantiate the trader gRPC server and start it.
-	s.rpcServer = newRPCServer(s)
+	s.rpcServer, err = newRPCServer(s)
+	if err != nil {
+		return err
+	}
 	err = s.rpcServer.Start()
 	if err != nil {
 		return err
@@ -408,7 +412,10 @@ func (s *Server) StartAsSubserver(lndClient lnrpc.LightningClient,
 	shutdownFuncs["auctioneer"] = s.AuctioneerClient.Stop
 
 	// Instantiate the trader gRPC server and start it.
-	s.rpcServer = newRPCServer(s)
+	s.rpcServer, err = newRPCServer(s)
+	if err != nil {
+		return err
+	}
 	err = s.rpcServer.Start()
 	if err != nil {
 		return err
@@ -551,6 +558,11 @@ func (s *Server) setupClient() error {
 		NotifyShimCreated: channelAcceptor.ShimRegistered,
 	})
 
+	batchVersion, err := s.determineBatchVersion()
+	if err != nil {
+		return err
+	}
+
 	// Create an instance of the auctioneer client library.
 	clientCfg := &auctioneer.Config{
 		ServerAddress: s.cfg.AuctionServer,
@@ -563,7 +575,7 @@ func (s *Server) setupClient() error {
 		MaxBackoff:    s.cfg.MaxBackoff,
 		BatchSource:   s.db,
 		BatchCleaner:  s.fundingManager,
-		BatchVersion:  s.determineBatchVersion(),
+		BatchVersion:  batchVersion,
 		GenUserAgent: func(ctx context.Context) string {
 			return UserAgent(InitiatorFromContext(ctx))
 		},
@@ -838,29 +850,52 @@ func (s *Server) syncLocalOrderState() error {
 // determineBatchVersion determines the batch version that will be sent to the
 // auctioneer to signal compatibility with the different features the trader
 // client can support.
-func (s *Server) determineBatchVersion() order.BatchVersion {
+func (s *Server) determineBatchVersion() (order.BatchVersion, error) {
 	configVersion := s.cfg.DebugConfig.BatchVersion
 
 	// We set the default value of the config flag to -1, so we can
 	// differentiate between no value set and the first version (0).
 	if configVersion >= 0 {
-		return order.BatchVersion(configVersion)
+		return order.BatchVersion(configVersion), nil
 	}
 
-	isTaprootCompatible := false
+	ctxt, cancel := context.WithTimeout(
+		context.Background(), getInfoTimeout,
+	)
+	defer cancel()
+
+	// We will try to decide what version to used based on the latest
+	// batch version + what features the node supports.
+	info, err := s.lndClient.GetInfo(ctxt, &lnrpc.GetInfoRequest{})
+	if err != nil {
+		return 0, err
+	}
+
+	// If the node supports ZeroConfChannels use that batch version.
+	_, zeroConfOpt := info.Features[uint32(lnwire.ZeroConfOptional)]
+	_, zeroConfReq := info.Features[uint32(lnwire.ZeroConfRequired)]
+	supportsZeroConf := zeroConfOpt || zeroConfReq
+
+	_, SCIDAliasOpt := info.Features[uint32(lnwire.ScidAliasOptional)]
+	_, SCIDAliasReq := info.Features[uint32(lnwire.ScidAliasRequired)]
+	supportsSCIDAlias := SCIDAliasOpt || SCIDAliasReq
+
+	if supportsZeroConf && supportsSCIDAlias {
+		return order.ZeroConfChannelsBatchVersion, nil
+	}
+
+	// If the node is taproot compatible use the
+	// UpgradeAccountTaprootBatchVersion.
 	verErr := lndclient.AssertVersionCompatible(
 		s.lndServices.Version, taprootVersion,
 	)
-	if verErr == nil {
-		isTaprootCompatible = true
+	supportsTaproot := verErr == nil
+	if supportsTaproot {
+		return order.UpgradeAccountTaprootBatchVersion, nil
 	}
 
-	// We can only auto-upgrade accounts to Taproot if the underlying node
-	// has the required capabilities.
-	if isTaprootCompatible {
-		return order.UpgradeAccountTaprootBatchVersion
-	}
-
-	// Fall back to the previous default version.
-	return order.LatestBatchVersion
+	// Fall back to the previous, safe, version. In this context, safe means
+	// compatible with the minimum LND version required + it does not have
+	// any config requirements.
+	return order.UnannouncedChannelsBatchVersion, nil
 }
