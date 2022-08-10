@@ -284,12 +284,16 @@ func ParseRPCServerAsk(details *auctioneerrpc.ServerAsk) (*MatchedOrder, error) 
 
 	kit.LeaseDuration = details.LeaseDurationBlocks
 
-	constraints := ChannelAnnouncementConstraints(
+	announcement := ChannelAnnouncementConstraints(
 		details.AnnouncementConstraints,
+	)
+	confirmations := ChannelConfirmationConstraints(
+		details.ConfirmationConstraints,
 	)
 	o.Order = &Ask{
 		Kit:                     *kit,
-		AnnouncementConstraints: constraints,
+		AnnouncementConstraints: announcement,
+		ConfirmationConstraints: confirmations,
 	}
 
 	return o, nil
@@ -315,6 +319,7 @@ func ParseRPCServerBid(details *auctioneerrpc.ServerBid) (*MatchedOrder, error) 
 		Kit:                *kit,
 		SelfChanBalance:    btcutil.Amount(details.SelfChanBalance),
 		UnannouncedChannel: details.UnannouncedChannel,
+		ZeroConfChannel:    details.ZeroConfChannel,
 	}
 
 	return o, nil

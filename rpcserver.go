@@ -1410,12 +1410,16 @@ func (s *rpcServer) SubmitOrder(ctx context.Context,
 			return nil, err
 		}
 
-		constraints := order.ChannelAnnouncementConstraints(
+		announcement := order.ChannelAnnouncementConstraints(
 			a.AnnouncementConstraints,
+		)
+		confirmations := order.ChannelConfirmationConstraints(
+			a.ConfirmationConstraints,
 		)
 		o = &order.Ask{
 			Kit:                     *kit,
-			AnnouncementConstraints: constraints,
+			AnnouncementConstraints: announcement,
+			ConfirmationConstraints: confirmations,
 		}
 
 	case *poolrpc.SubmitOrderRequest_Bid:
@@ -1442,6 +1446,7 @@ func (s *rpcServer) SubmitOrder(ctx context.Context,
 			SelfChanBalance:    btcutil.Amount(b.SelfChanBalance),
 			SidecarTicket:      ticket,
 			UnannouncedChannel: b.UnannouncedChannel,
+			ZeroConfChannel:    b.ZeroConfChannel,
 		}
 
 	default:
@@ -1647,14 +1652,18 @@ func (s *rpcServer) ListOrders(ctx context.Context,
 
 		switch o := dbOrder.(type) {
 		case *order.Ask:
-			constraints := auctioneerrpc.ChannelAnnouncementConstraints(
+			announcement := auctioneerrpc.ChannelAnnouncementConstraints(
 				o.AnnouncementConstraints,
+			)
+			confirmations := auctioneerrpc.ChannelConfirmationConstraints(
+				o.ConfirmationConstraints,
 			)
 			rpcAsk := &poolrpc.Ask{
 				Details:                 details,
 				LeaseDurationBlocks:     dbDetails.LeaseDuration,
 				Version:                 uint32(o.Version),
-				AnnouncementConstraints: constraints,
+				AnnouncementConstraints: announcement,
+				ConfirmationConstraints: confirmations,
 			}
 			asks = append(asks, rpcAsk)
 
@@ -1671,6 +1680,7 @@ func (s *rpcServer) ListOrders(ctx context.Context,
 				MinNodeTier:         nodeTier,
 				SelfChanBalance:     uint64(o.SelfChanBalance),
 				UnannouncedChannel:  o.UnannouncedChannel,
+				ZeroConfChannel:     o.ZeroConfChannel,
 			}
 
 			// The sidecar ticket was given to the auction server
