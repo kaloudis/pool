@@ -24,10 +24,14 @@ const (
 
 	channelTypePeerDependent  = "legacy"
 	channelTypeScriptEnforced = "script-enforced"
-)
 
-// Default max batch fee rate to 100 sat/vByte.
-const defaultMaxBatchFeeRateSatPerVByte = 100
+	// Default max batch fee rate to 100 sat/vByte.
+	defaultMaxBatchFeeRateSatPerVByte = 100
+
+	// default preference for confirmation constraints "ONLY_CONFIRMED"
+	// channels.
+	defaultConfirmationConstraints = 1
+)
 
 var ordersCommands = []cli.Command{
 	{
@@ -100,12 +104,17 @@ var baseBidFlags = []cli.Flag{
 			"from our account into the channel; can be " +
 			"used to create up to 50/50 balanced channels",
 	},
-	cli.Uint64Flag{
+	cli.BoolFlag{
 		Name: "unannounced_channel",
 		Usage: "flag used to signal that this bid is interested only " +
-			"in unannounced channels. If this flag is not set,  " +
+			"in unannounced channels. If this flag is not set, " +
 			"the channels resulting from matching this order " +
 			"will be announced to the network",
+	},
+	cli.BoolFlag{
+		Name: "zeroconf_channel",
+		Usage: "flag used to signal that this bid is only interested " +
+			"in zeroconf channels",
 	},
 }
 
@@ -396,6 +405,15 @@ var ordersSubmitAskCommand = cli.Command{
 				"unannounced ones. The default value is \"no " +
 				"preference\"",
 		},
+		cli.Uint64Flag{
+			Name: "confirmation_constraints",
+			Usage: "specifies if the liquidity must be sold in " +
+				"zeroconf or confirmed channels. Set to 1 " +
+				"for only confirmed channels and 2 for only " +
+				"zeroconf ones. The default value is \"only " +
+				"confirmed\"",
+			Value: defaultConfirmationConstraints,
+		},
 		cli.BoolFlag{
 			Name:  "force",
 			Usage: "skip order placement confirmation",
@@ -411,8 +429,12 @@ func ordersSubmitAsk(ctx *cli.Context) error { // nolint: dupl
 		return nil
 	}
 
-	constraints := auctioneerrpc.ChannelAnnouncementConstraints(
+	announcement := auctioneerrpc.ChannelAnnouncementConstraints(
 		ctx.Uint64("announcement_constraints"),
+	)
+
+	confirmations := auctioneerrpc.ChannelConfirmationConstraints(
+		ctx.Uint64("confirmation_constraints"),
 	)
 
 	ask := &poolrpc.Ask{
@@ -420,7 +442,8 @@ func ordersSubmitAsk(ctx *cli.Context) error { // nolint: dupl
 			ctx.Uint64("lease_duration_blocks"),
 		),
 		Version:                 uint32(order.VersionChannelType),
-		AnnouncementConstraints: constraints,
+		AnnouncementConstraints: announcement,
+		ConfirmationConstraints: confirmations,
 	}
 
 	params, err := parseCommonParams(ctx, ask.LeaseDurationBlocks)
@@ -582,6 +605,7 @@ func parseBaseBid(ctx *cli.Context) (*poolrpc.Bid, *sidecar.Ticket, error) {
 		Version:            uint32(order.VersionChannelType),
 		MinNodeTier:        nodeTier,
 		UnannouncedChannel: ctx.Bool("unannounced_channel"),
+		ZeroConfChannel:    ctx.Bool("zeroconf_channel"),
 	}
 
 	// Let's find out if this is an order for a sidecar channel because if
