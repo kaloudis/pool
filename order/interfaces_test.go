@@ -316,7 +316,7 @@ func TestOrderReservedValue(t *testing.T) {
 	}
 }
 
-var channelConstrainsTestCases = []struct {
+var channelAnnouncementConstrainsTestCases = []struct {
 	name               string
 	askerConstrains    ChannelAnnouncementConstraints
 	unannouncedChannel bool
@@ -353,14 +353,66 @@ var channelConstrainsTestCases = []struct {
 	result:             true,
 }}
 
-func TestChannelConstrainsCompatibility(t *testing.T) {
-	for _, tc := range channelConstrainsTestCases {
+func TestChannelAnnouncementConstrainsCompatibility(t *testing.T) {
+	for _, tc := range channelAnnouncementConstrainsTestCases {
 		tc := tc
 
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			res := MatchAnnouncementConstraints(
 				tc.askerConstrains, tc.unannouncedChannel,
+			)
+
+			require.Equal(t, tc.result, res)
+		})
+	}
+}
+
+var channelConfirmationConstrainsTestCases = []struct {
+	name            string
+	askerConstrains ChannelConfirmationConstraints
+	zeroConfChannel bool
+	result          bool
+}{{
+	name:            "ask no preference bid zero confirmed channel",
+	askerConstrains: ConfirmationNoPreference,
+	zeroConfChannel: false,
+	result:          true,
+}, {
+	name:            "ask no preference bid zero conf channel",
+	askerConstrains: ConfirmationNoPreference,
+	zeroConfChannel: true,
+	result:          true,
+}, {
+	name:            "ask only confirmed channels bid confirmed channel",
+	askerConstrains: OnlyConfirmed,
+	zeroConfChannel: false,
+	result:          true,
+}, {
+	name:            "ask only confirmed bid zero conf channel",
+	askerConstrains: OnlyConfirmed,
+	zeroConfChannel: true,
+	result:          false,
+}, {
+	name:            "ask only zero conf channels bid confirmed channel",
+	askerConstrains: OnlyZeroConf,
+	zeroConfChannel: false,
+	result:          false,
+}, {
+	name:            "ask only zero conf channels bid zero conf channel",
+	askerConstrains: OnlyZeroConf,
+	zeroConfChannel: true,
+	result:          true,
+}}
+
+func TestChannelConstrainsCompatibility(t *testing.T) {
+	for _, tc := range channelConfirmationConstrainsTestCases {
+		tc := tc
+
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			res := MatchZeroConfConstraints(
+				tc.askerConstrains, tc.zeroConfChannel,
 			)
 
 			require.Equal(t, tc.result, res)

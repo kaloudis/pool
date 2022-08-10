@@ -26,6 +26,7 @@ var submitOrderTestCases = []struct {
 		o := &order.Ask{
 			Kit:                     *dummyOrder(500000, 1337),
 			AnnouncementConstraints: order.OnlyUnannounced,
+			ConfirmationConstraints: order.OnlyZeroConf,
 		}
 		o.Details().MinUnitsMatch = 10
 		o.Details().ChannelType = order.ChannelTypeScriptEnforced
@@ -61,6 +62,7 @@ var submitOrderTestCases = []struct {
 				},
 			},
 			UnannouncedChannel: true,
+			ZeroConfChannel:    true,
 		}
 		o.Details().MinUnitsMatch = 10
 		o.Details().ChannelType = order.ChannelTypeScriptEnforced

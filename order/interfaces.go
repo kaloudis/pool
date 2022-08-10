@@ -264,6 +264,24 @@ const (
 	OnlyUnannounced ChannelAnnouncementConstraints = 2
 )
 
+// ChannelConfirmationConstraints is a numerical type used to denote if the
+// channels created from a match is zero conf or not.
+type ChannelConfirmationConstraints uint8
+
+const (
+	// ConfirmationNoPreference denotes that the resulting channel can be
+	// zero conf or not.
+	ConfirmationNoPreference ChannelConfirmationConstraints = 0
+
+	// OnlyConfirmed denotes that the resulting channels must be confirmed
+	// onchain before start routing.
+	OnlyConfirmed ChannelConfirmationConstraints = 1
+
+	// OnlyZeroConf denotes that the resulting channels can be used
+	// without having to wait for onchain confirmations.
+	OnlyZeroConf ChannelConfirmationConstraints = 2
+)
+
 var (
 	// ErrInsufficientBalance is the error that is returned if an account
 	// has insufficient balance to perform a requested action.
@@ -286,6 +304,26 @@ func MatchAnnouncementConstraints(asker ChannelAnnouncementConstraints,
 		return true
 
 	case asker == OnlyUnannounced && unannounced:
+		return true
+
+	default:
+		return false
+	}
+}
+
+// MatchZeroConfConstraints returns true when the asker confirmation
+// constraints match the bidder confirmation preferences.
+func MatchZeroConfConstraints(asker ChannelConfirmationConstraints,
+	zeroConf bool) bool {
+
+	switch {
+	case asker == ConfirmationNoPreference:
+		return true
+
+	case asker == OnlyConfirmed && !zeroConf:
+		return true
+
+	case asker == OnlyZeroConf && zeroConf:
 		return true
 
 	default:
@@ -435,6 +473,10 @@ type Ask struct {
 	// AnnouncementConstraints specifies the constraints for the matched
 	// channels in terms of announced/unannounced.
 	AnnouncementConstraints ChannelAnnouncementConstraints
+
+	// ConfirmationConstraints specifies the constraints for the matched
+	// channels in terms of confirmed/zero conf.
+	ConfirmationConstraints ChannelConfirmationConstraints
 }
 
 // Type returns the order type.
@@ -642,6 +684,10 @@ type Bid struct {
 	// UnannouncedChannel signals if the resulting channel needs to be
 	// announced or not.
 	UnannouncedChannel bool
+
+	// ZeroConfChannel signals if the resulting channels need to be zero
+	// conf or not.
+	ZeroConfChannel bool
 }
 
 // Type returns the order type.

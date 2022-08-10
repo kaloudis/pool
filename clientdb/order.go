@@ -42,6 +42,14 @@ const (
 	// askChannelAnnouncementCosntraintsType is the tlv type that we use
 	// to store the channel announcement match preferences.
 	askChannelAnnouncementCosntraintsType tlv.Type = 7
+
+	// bidZeroConfType is the tlv type we use to store a flag value when
+	// a bid asks for zero conf channels.
+	bidZeroConfType tlv.Type = 8
+
+	// askChannelConfirmationCosntraintsType is the tlv type that we use
+	// to store the channel confirmation match preferences.
+	askChannelConfirmationCosntraintsType tlv.Type = 9
 )
 
 var (
@@ -684,6 +692,8 @@ func deserializeOrderTlvData(r io.Reader, o order.Order) error {
 		notAllowedNodeIDs          []byte
 		bidUnannoucedChannel       uint8
 		askAnnouncementConstraints uint8
+		bidZeroConf                uint8
+		askConfirmationConstraints uint8
 	)
 
 	// We'll add records for all possible additional order data fields here
@@ -705,6 +715,11 @@ func deserializeOrderTlvData(r io.Reader, o order.Order) error {
 		tlv.MakePrimitiveRecord(
 			askChannelAnnouncementCosntraintsType,
 			&askAnnouncementConstraints,
+		),
+		tlv.MakePrimitiveRecord(bidZeroConfType, &bidZeroConf),
+		tlv.MakePrimitiveRecord(
+			askChannelConfirmationCosntraintsType,
+			&askConfirmationConstraints,
 		),
 	)
 	if err != nil {
@@ -728,6 +743,14 @@ func deserializeOrderTlvData(r io.Reader, o order.Order) error {
 			castOrder.AnnouncementConstraints = constraint
 		}
 
+		t, ok = parsedTypes[askChannelConfirmationCosntraintsType]
+		if ok && t == nil {
+			constraint := order.ChannelConfirmationConstraints(
+				askConfirmationConstraints,
+			)
+			castOrder.ConfirmationConstraints = constraint
+		}
+
 	case *order.Bid:
 		if t, ok := parsedTypes[bidSelfChanBalanceType]; ok && t == nil {
 			castOrder.SelfChanBalance = btcutil.Amount(
@@ -747,6 +770,11 @@ func deserializeOrderTlvData(r io.Reader, o order.Order) error {
 		t, ok := parsedTypes[bidUnannouncedChannelType]
 		if ok && t == nil && bidUnannoucedChannel == 1 {
 			castOrder.UnannouncedChannel = true
+		}
+
+		t, ok = parsedTypes[bidZeroConfType]
+		if ok && t == nil && bidZeroConf == 1 {
+			castOrder.ZeroConfChannel = true
 		}
 	}
 
@@ -780,12 +808,18 @@ func serializeOrderTlvData(w io.Writer, o order.Order) error {
 		tlvRecords                 []tlv.Record
 		askAnnouncementConstraints uint8
 		bidUnannouncedChannel      bool
+		askConfirmationConstraints uint8
+		bidZeroConfChannel         bool
 	)
 
 	switch castOrder := o.(type) {
 	case *order.Ask:
 		askAnnouncementConstraints = uint8(
 			castOrder.AnnouncementConstraints,
+		)
+
+		askConfirmationConstraints = uint8(
+			castOrder.ConfirmationConstraints,
 		)
 
 	case *order.Bid:
@@ -811,6 +845,7 @@ func serializeOrderTlvData(w io.Writer, o order.Order) error {
 		}
 
 		bidUnannouncedChannel = castOrder.UnannouncedChannel
+		bidZeroConfChannel = castOrder.ZeroConfChannel
 	}
 
 	channelType := uint8(o.Details().ChannelType)
@@ -846,6 +881,18 @@ func serializeOrderTlvData(w io.Writer, o order.Order) error {
 	tlvRecords = append(tlvRecords, tlv.MakePrimitiveRecord(
 		askChannelAnnouncementCosntraintsType,
 		&askAnnouncementConstraints,
+	))
+
+	if bidZeroConfChannel {
+		zeroConf := uint8(1)
+		tlvRecords = append(tlvRecords, tlv.MakePrimitiveRecord(
+			bidZeroConfType, &zeroConf,
+		))
+	}
+
+	tlvRecords = append(tlvRecords, tlv.MakePrimitiveRecord(
+		askChannelConfirmationCosntraintsType,
+		&askConfirmationConstraints,
 	))
 
 	tlvStream, err := tlv.NewStream(tlvRecords...)
