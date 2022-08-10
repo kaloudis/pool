@@ -196,5 +196,23 @@ func (s *ChannelAcceptor) acceptChannel(_ context.Context,
 		}, nil
 	}
 
-	return &lndclient.AcceptorResponse{Accept: true}, nil
+	// Check that the channel is a zero conf channel if we were expecitng
+	// one.
+	if expectedChanBid.ZeroConfChannel {
+		if !req.WantsZeroConf {
+			return &lndclient.AcceptorResponse{
+				Accept: false,
+				Error:  "expected zero conf channel",
+			}, nil
+		}
+		return &lndclient.AcceptorResponse{
+			Accept:         true,
+			MinAcceptDepth: 0,
+			ZeroConf:       true,
+		}, nil
+	}
+
+	return &lndclient.AcceptorResponse{
+		Accept: true,
+	}, nil
 }
