@@ -67,6 +67,16 @@ const (
 	// 10 on purpose to allow for in-between versions (that aren't dependent
 	// on a lnd version) to be added.
 	UpgradeAccountTaprootBatchVersion BatchVersion = 10
+
+	// ZeroConfChannelsBatchVersion is the first verion where orders can
+	// set the flags to only match with confirmed/zeroconf channels.
+	//
+	// NOTE: This feature requires the runtime to support:
+	// - The asker needs to open the channel with the right `zeroconf` bit.
+	// - The bidder needs to be able to set the channel acceptor for the
+	//   channel with the right  `Zeroconf` bool value && `MinDepth=0`.
+	// The LND node should be running version v0.15.1-beta or newer.
+	ZeroConfChannelsBatchVersion BatchVersion = 11
 )
 
 // SupportsAccountExtension is a helper function to easily check if a version
@@ -86,6 +96,12 @@ func (bv BatchVersion) SupportsUnannouncedChannels() bool {
 // not.
 func (bv BatchVersion) SupportsAccountTaprootUpgrade() bool {
 	return bv >= UpgradeAccountTaprootBatchVersion
+}
+
+// SupportsZeroConfChannels is the helper function to easily check if a version
+// supports orders with zeroconf channels or not.
+func (bv BatchVersion) SupportsZeroConfChannels() bool {
+	return bv >= ZeroConfChannelsBatchVersion
 }
 
 const (

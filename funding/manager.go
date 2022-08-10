@@ -706,6 +706,7 @@ func (m *Manager) BatchChannelSetup(
 				),
 				CommitmentType: commitmentType,
 				Private:        private,
+				ZeroConf:       matchedOrderBid.ZeroConfChannel,
 			}
 			chanStream, err := m.cfg.BaseClient.OpenChannel(
 				setupCtx, fundingReq,
