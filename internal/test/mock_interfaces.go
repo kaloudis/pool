@@ -318,6 +318,20 @@ func (mr *MockWalletKitClientMockRecorder) FundPsbt(ctx, req interface{}) *gomoc
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "FundPsbt", reflect.TypeOf((*MockWalletKitClient)(nil).FundPsbt), ctx, req)
 }
 
+// ImportPublicKey mocks base method.
+func (m *MockWalletKitClient) ImportPublicKey(ctx context.Context, pubkey *btcec.PublicKey, addrType lnwallet.AddressType) error {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ImportPublicKey", ctx, pubkey, addrType)
+	ret0, _ := ret[0].(error)
+	return ret0
+}
+
+// ImportPublicKey indicates an expected call of ImportPublicKey.
+func (mr *MockWalletKitClientMockRecorder) ImportPublicKey(ctx, pubkey, addrType interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ImportPublicKey", reflect.TypeOf((*MockWalletKitClient)(nil).ImportPublicKey), ctx, pubkey, addrType)
+}
+
 // LeaseOutput mocks base method.
 func (m *MockWalletKitClient) LeaseOutput(ctx context.Context, lockID wtxmgr.LockID, op wire.OutPoint, leaseTime time.Duration) (time.Time, error) {
 	m.ctrl.T.Helper()
